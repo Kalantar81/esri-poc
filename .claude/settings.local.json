@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm uninstall:*)",
+      "Bash(npx ng build:*)",
+      "Bash(timeout 15 npx ng serve)"
+    ]
+  }
+}

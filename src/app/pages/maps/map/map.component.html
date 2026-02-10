@@ -1,0 +1,23 @@
+<div class="map-container">
+  <app-esri-map
+    [selectedBasemap]="selectedBasemap"
+    [selectedSymbolType]="selectedSymbolType"
+    [entitiesAmount]="entitiesAmount"
+    [isLoading]="isLoading"
+    (layersChanged)="onLayersChanged($event)"
+    (loadingTimeChanged)="onLoadingTimeChanged($event)">
+  </app-esri-map>
+
+  <app-control-panel
+    [layerTypes]="layerTypes"
+    [activeLayerIds]="activeLayerIds"
+    [isLoading]="isLoading"
+    [totalLoadingTime]="totalLoadingTime"
+    [lastLoadedTime]="lastLoadedTime"
+    (basemapChanged)="onBasemapChanged($event)"
+    (symbolTypeChanged)="onSymbolTypeChanged($event)"
+    (entitiesAmountChanged)="onEntitiesAmountChanged($event)"
+    (layerToggled)="onLayerToggled($event)"
+    (settingsApplied)="onSettingsApplied($event)">
+  </app-control-panel>
+</div>
