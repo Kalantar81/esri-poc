@@ -1,1 +1,1 @@
-<p-panelMenu [model]="sideMenuItems" />
+<p-panelMenu [model]="(sideMenuItems$ | async) ?? []" />

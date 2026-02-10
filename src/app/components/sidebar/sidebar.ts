@@ -1,40 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { PanelMenuModule } from 'primeng/panelmenu';
-import { MenuItem } from 'primeng/api';
+import { SidebarService } from './sidebar.service';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [PanelMenuModule],
+  imports: [PanelMenuModule, AsyncPipe],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
-  sideMenuItems: MenuItem[] = [
-    {
-      label: 'Map Tools',
-      icon: 'pi pi-map-marker',
-      items: [
-        { label: 'Basemaps', icon: 'pi pi-globe' },
-        { label: 'Measure', icon: 'pi pi-ruler' },
-        { label: 'Draw', icon: 'pi pi-pencil' }
-      ]
-    },
-    {
-      label: 'Data',
-      icon: 'pi pi-database',
-      items: [
-        { label: 'Import', icon: 'pi pi-upload' },
-        { label: 'Export', icon: 'pi pi-download' },
-        { label: 'Query', icon: 'pi pi-search' }
-      ]
-    },
-    {
-      label: 'Settings',
-      icon: 'pi pi-cog',
-      items: [
-        { label: 'Preferences', icon: 'pi pi-sliders-h' },
-        { label: 'Account', icon: 'pi pi-user' }
-      ]
-    }
-  ];
+  private sidebarService = inject(SidebarService);
+  sideMenuItems$ = this.sidebarService.menuItems$;
 }

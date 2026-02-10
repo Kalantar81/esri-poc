@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-header',
-  imports: [MenubarModule],
+  imports: [MenubarModule, RouterModule],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
