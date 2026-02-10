@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import EsriMap from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
@@ -25,7 +25,7 @@ interface LayerType {
   templateUrl: './esri-map.component.html',
   styleUrls: ['./esri-map.component.scss']
 })
-export class EsriMapComponent implements OnInit, OnDestroy {
+export class EsriMapComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('mapViewNode', { static: true }) private mapViewEl!: ElementRef;
 
   @Input() selectedBasemap: string = 'streets-vector';
@@ -40,6 +40,7 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   private map: any = null;
   private activeLayers = new Map<string, any>();
   activeLayerIds: Set<string> = new Set();
+  private mapInitialized: boolean = false;
 
   layersToLoad: number = 22;
 
@@ -108,6 +109,31 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     this.initializeMap();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    // Only respond to changes after the map is initialized
+    if (!this.mapInitialized) {
+      return;
+    }
+
+    // Handle basemap change
+    if (changes['selectedBasemap'] && !changes['selectedBasemap'].firstChange) {
+      console.log('Basemap changed to:', this.selectedBasemap);
+      this.updateBasemap(this.selectedBasemap);
+    }
+
+    // Handle symbol type change - need to reload layers
+    if (changes['selectedSymbolType'] && !changes['selectedSymbolType'].firstChange) {
+      console.log('Symbol type changed to:', this.selectedSymbolType);
+      this.reloadLayersWithNewSymbol();
+    }
+
+    // Handle entities amount change - need to reload layers
+    if (changes['entitiesAmount'] && !changes['entitiesAmount'].firstChange) {
+      console.log('Entities amount changed to:', this.entitiesAmount);
+      this.reloadLayersWithNewEntityAmount();
+    }
+  }
+
   get visibleLayerTypes(): LayerType[] {
     return this.layerTypes;
   }
@@ -128,6 +154,7 @@ export class EsriMapComponent implements OnInit, OnDestroy {
       });
 
       await this.view.when();
+      this.mapInitialized = true;
       await this.loadAllVisibleLayers();
 
     } catch (error) {
@@ -189,6 +216,7 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   updateBasemap(basemap: string): void {
     if (this.map) {
       this.map.basemap = basemap;
+      console.log('Basemap updated to:', basemap);
     }
   }
 
@@ -208,6 +236,26 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     await Promise.all(layerPromises);
 
     this.layersChanged.emit(this.activeLayerIds);
+    console.log('Layers reloaded with new symbol type');
+  }
+
+  async reloadLayersWithNewEntityAmount(): Promise<void> {
+    const activeLayerIds = Array.from(this.activeLayers.keys());
+
+    activeLayerIds.forEach(layerId => {
+      const layer = this.activeLayers.get(layerId);
+      if (layer) {
+        this.map.remove(layer);
+      }
+    });
+    this.activeLayers.clear();
+    this.activeLayerIds.clear();
+
+    const layerPromises = activeLayerIds.map(layerId => this.addLayer(layerId));
+    await Promise.all(layerPromises);
+
+    this.layersChanged.emit(this.activeLayerIds);
+    console.log('Layers reloaded with new entity amount');
   }
 
   private async addLayer(layerId: string): Promise<void> {

@@ -214,5 +214,6 @@ export class MapComponent implements OnInit {
     this.selectedBasemap = settings.basemap;
     this.selectedSymbolType = settings.symbolType;
     this.entitiesAmount = settings.entitiesAmount;
+    console.log('Settings applied:', settings);
   }
 }
