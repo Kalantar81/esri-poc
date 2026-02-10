@@ -1,5 +1,14 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import EsriMap from '@arcgis/core/Map';
+import MapView from '@arcgis/core/views/MapView';
+import GeoJSONLayer from '@arcgis/core/layers/GeoJSONLayer';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import CSVLayer from '@arcgis/core/layers/CSVLayer';
+import Graphic from '@arcgis/core/Graphic';
+import Point from '@arcgis/core/geometry/Point';
+import esriConfig from '@arcgis/core/config';
 
 interface LayerType {
   id: string;
@@ -8,8 +17,6 @@ interface LayerType {
   type: 'feature' | 'graphics' | 'geojson' | 'csv' | 'feature-collection' | 'client-side';
   layerTypeName: string;
 }
-
-declare const require: any;
 
 @Component({
   selector: 'app-esri-map',
@@ -68,8 +75,7 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     'csv-4': [205, 133, 63, 0.8]
   };
 
-  // Cached ArcGIS module references
-  private esriModules: any = {};
+
 
   layerTypes: LayerType[] = [
     { id: 'geojson', name: 'Earthquakes (GeoJSON)', description: 'GeoJSON Layer - USGS Earthquake Data', type: 'geojson', layerTypeName: 'GeoJSON Layer' },
@@ -106,33 +112,11 @@ export class EsriMapComponent implements OnInit, OnDestroy {
     return this.layerTypes;
   }
 
-  private loadArcGISModules(modules: string[]): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      require(modules, (...args: any[]) => {
-        resolve(args);
-      }, (err: any) => {
-        reject(err);
-      });
-    });
-  }
-
   private async initializeMap(): Promise<void> {
     try {
-      const [Map, MapView, GeoJSONLayer, GraphicsLayer, FeatureLayer, CSVLayer, Graphic, Point] =
-        await this.loadArcGISModules([
-          'esri/Map',
-          'esri/views/MapView',
-          'esri/layers/GeoJSONLayer',
-          'esri/layers/GraphicsLayer',
-          'esri/layers/FeatureLayer',
-          'esri/layers/CSVLayer',
-          'esri/Graphic',
-          'esri/geometry/Point'
-        ]);
+      esriConfig.assetsPath = '/assets';
 
-      this.esriModules = { Map, MapView, GeoJSONLayer, GraphicsLayer, FeatureLayer, CSVLayer, Graphic, Point };
-
-      this.map = new Map({
+      this.map = new EsriMap({
         basemap: this.selectedBasemap
       });
 
@@ -378,7 +362,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   }
 
   private buildGeoJSONLayer(data: any, layerId: string): any {
-    const { GeoJSONLayer } = this.esriModules;
 
     const geojson = {
       type: 'FeatureCollection',
@@ -400,7 +383,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   }
 
   private buildGraphicsLayer(data: any, layerId: string): any {
-    const { GraphicsLayer, Graphic, Point } = this.esriModules;
     const layer = new GraphicsLayer();
     const features = data.features || [];
     const symbol = this.getSymbolForType(layerId);
@@ -419,7 +401,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   }
 
   private buildFeatureLayer(data: any, layerId: string): any {
-    const { FeatureLayer, Graphic, Point } = this.esriModules;
     const features = data.features || [];
     const graphics = features.map((feature: any) => {
       const [lon, lat] = feature.geometry.coordinates;
@@ -444,7 +425,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   }
 
   private buildCSVLayer(data: any, layerId: string): any {
-    const { CSVLayer } = this.esriModules;
     const features = data.features || [];
     let csvContent = 'longitude,latitude,id\n';
 
@@ -466,7 +446,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   }
 
   private buildFeatureCollectionLayer(data: any, layerId: string): any {
-    const { FeatureLayer, Graphic, Point } = this.esriModules;
     const features = data.features || [];
     const graphics = features.map((feature: any, index: number) => {
       const [lon, lat] = feature.geometry.coordinates;
@@ -492,7 +471,6 @@ export class EsriMapComponent implements OnInit, OnDestroy {
   }
 
   private buildClientSideFeatureLayer(data: any, layerId: string): any {
-    const { FeatureLayer, Graphic, Point } = this.esriModules;
     const features = data.features || [];
     const graphics = features.map((feature: any, index: number) => {
       const [lon, lat] = feature.geometry.coordinates;
